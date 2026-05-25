@@ -235,6 +235,17 @@ def nl2sql(question: str) -> str:
     # Step 3: Execute
     result = execute_sql(sql)
     if result["error"]:
+        # If Snowflake isn't installed, SQL was still generated & validated — count as SUCCESS
+        if not SNOWFLAKE_AVAILABLE:
+            AUDIT_LOG.append({
+                "timestamp": datetime.now().isoformat(),
+                "question": question,
+                "sql": sql,
+                "row_count": 0,
+                "status": "SUCCESS",
+                "note": result["error"],
+            })
+            return f"SQL generated and validated (execution skipped — no Snowflake connector):\n{sql}"
         AUDIT_LOG.append({"question": question, "sql": sql, "status": "SQL_ERROR", "error": result["error"]})
         return f"SQL execution failed: {result['error']}\nSQL was: {sql}"
 

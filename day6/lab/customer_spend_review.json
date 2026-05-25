@@ -1,0 +1,43 @@
+{
+  "file": "queries/customer_spend.sql",
+  "reviewed_at": "2026-05-25T16:22:07.154370",
+  "issues_found": 4,
+  "review": {
+    "issues": [
+      {
+        "severity": "Critical",
+        "category": "Correctness",
+        "title": "Missing Revenue Calculation",
+        "line": "N/A",
+        "problem": "The query does not calculate revenue as per the business rule.",
+        "fix": "Add a SUM(amount) WHERE status = 'COMPLETED' calculation for revenue."
+      },
+      {
+        "severity": "Medium",
+        "category": "Correctness",
+        "title": "Incorrect Lifetime Value Calculation",
+        "line": "SUM(t.amount) as lifetime_value",
+        "problem": "Lifetime value should only include completed transactions, but the sum includes all transactions.",
+        "fix": "SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) as lifetime_value"
+      },
+      {
+        "severity": "Medium",
+        "category": "Readability",
+        "title": "Lack of Comments",
+        "line": "N/A",
+        "problem": "The query lacks comments explaining complex logic.",
+        "fix": "Add comments to explain the purpose of each part of the query."
+      },
+      {
+        "severity": "Low",
+        "category": "Readability",
+        "title": "Inconsistent Naming",
+        "line": "N/A",
+        "problem": "The alias 'c' for 'dim_customer' is clear, but 't' for 'fact_transactions' could be more descriptive.",
+        "fix": "Use more descriptive aliases, e.g., 'tx' for 'fact_transactions'."
+      }
+    ],
+    "corrected_sql": "SELECT c.customer_name, c.email, c.tier, SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) as lifetime_value, COUNT(t.transaction_id) as total_orders FROM dim_customer c LEFT JOIN fact_transactions t ON c.customer_id = t.customer_id WHERE t.status = 'COMPLETED' GROUP BY c.customer_name, c.email HAVING SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) > 1000 ORDER BY lifetime_value DESC;",
+    "summary": "The query has critical correctness issues and could benefit from improved readability and additional comments."
+  }
+}

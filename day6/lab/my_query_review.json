@@ -1,0 +1,43 @@
+{
+  "file": "queries/my_query.sql",
+  "reviewed_at": "2026-05-25T16:22:24.899831",
+  "issues_found": 4,
+  "review": {
+    "issues": [
+      {
+        "severity": "Critical",
+        "category": "Correctness",
+        "title": "Revenue calculation missing filter",
+        "line": "SUM(t.amount) as revenue",
+        "problem": "Revenue is calculated without filtering for completed transactions only.",
+        "fix": "SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) as revenue"
+      },
+      {
+        "severity": "Medium",
+        "category": "Correctness",
+        "title": "Failure rate calculation incorrect",
+        "line": "SUM(CASE WHEN t.status = 'FAILED' THEN 1 ELSE 0 END) / COUNT(*) * 100 as fail_pct",
+        "problem": "Failure rate calculation is incorrect because it should be based on the total transaction count, not just completed ones.",
+        "fix": "SUM(CASE WHEN t.status = 'FAILED' THEN 1 ELSE 0 END) / COUNT(t.transaction_id) * 100 as fail_pct"
+      },
+      {
+        "severity": "Low",
+        "category": "Readability",
+        "title": "Implicit join syntax",
+        "line": "FROM fact_transactions t, dim_merchant m",
+        "problem": "Using implicit join syntax can make the query harder to read and understand.",
+        "fix": "FROM fact_transactions t JOIN dim_merchant m ON t.merchant_id = m.merchant_id"
+      },
+      {
+        "severity": "Low",
+        "category": "Readability",
+        "title": "Lack of comments",
+        "line": "Entire query",
+        "problem": "The query lacks comments explaining the logic, which can be helpful for future maintainers.",
+        "fix": "-- Added comments for better readability\nSELECT m.merchant_name,\n       DATE_TRUNC('MONTH', t.transaction_date) as month,\n       SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) as revenue,\n       COUNT(t.transaction_id) as txn_count,\n       SUM(CASE WHEN t.status = 'FAILED' THEN 1 ELSE 0 END) / COUNT(t.transaction_id) * 100 as fail_pct\nFROM fact_transactions t\nJOIN dim_merchant m ON t.merchant_id = m.merchant_id\nGROUP BY m.merchant_name, month\nORDER BY month, revenue DESC;"
+      }
+    ],
+    "corrected_sql": "-- Monthly merchant performance report\n-- Shows each merchant's monthly revenue and transaction volume\nSELECT m.merchant_name,\n       DATE_TRUNC('MONTH', t.transaction_date) as month,\n       SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) as revenue,\n       COUNT(t.transaction_id) as txn_count,\n       SUM(CASE WHEN t.status = 'FAILED' THEN 1 ELSE 0 END) / COUNT(t.transaction_id) * 100 as fail_pct\nFROM fact_transactions t\nJOIN dim_merchant m ON t.merchant_id = m.merchant_id\nGROUP BY m.merchant_name, month\nORDER BY month, revenue DESC;",
+    "summary": "The query had correctness issues with revenue calculation and failure rate. Readability was improved by changing the join syntax and adding comments."
+  }
+}
