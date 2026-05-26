@@ -1,0 +1,110 @@
+{
+  "checkpoints": [
+    {
+      "id": 1,
+      "name": "IDEMPOTENCY",
+      "status": "PASS",
+      "evidence": "No violation found",
+      "finding": "All writes use 'overwrite' mode.",
+      "fix": "N/A"
+    },
+    {
+      "id": 2,
+      "name": "ERROR_HANDLING",
+      "status": "PASS",
+      "evidence": "try/except blocks present in main() and run_gold()",
+      "finding": "Proper error handling is implemented.",
+      "fix": "N/A"
+    },
+    {
+      "id": 3,
+      "name": "PARTITION_PRUNING",
+      "status": "PASS",
+      "evidence": "bronze_df = spark.read.parquet(f\"{bronze_path}/load_date={run_date}\")",
+      "finding": "Partition pruning is applied using 'load_date'.",
+      "fix": "N/A"
+    },
+    {
+      "id": 4,
+      "name": "ROW_COUNT_LOGGING",
+      "status": "PASS",
+      "evidence": "logger.info(\"[Stage: ingest_bronze] input_count: %s rows\", f\"{input_count:,}\")",
+      "finding": "Row counts are logged after transformations.",
+      "fix": "N/A"
+    },
+    {
+      "id": 5,
+      "name": "BUSINESS_RULES",
+      "status": "PASS",
+      "evidence": "completed_txns = silver_df.filter(col(\"status\") == \"COMPLETED\")",
+      "finding": "Aggregations are filtered by'status=COMPLETED'.",
+      "fix": "N/A"
+    },
+    {
+      "id": 6,
+      "name": "NULL_HANDLING",
+      "status": "PASS",
+      "evidence": "bronze_df = bronze_df.filter((col(\"transaction_id\").isNotNull()) & (col(\"amount\") >= 0))",
+      "finding": "NULL handling is implemented.",
+      "fix": "N/A"
+    },
+    {
+      "id": 7,
+      "name": "BROADCAST_HINT",
+      "status": "PASS",
+      "evidence": "merchants_df = broadcast(merchants_df)",
+      "finding": "Broadcast hint is used on join operations.",
+      "fix": "N/A"
+    },
+    {
+      "id": 8,
+      "name": "HARDCODED_PATHS",
+      "status": "PASS",
+      "evidence": "Paths are read from environment variables.",
+      "finding": "No hardcoded paths found.",
+      "fix": "N/A"
+    },
+    {
+      "id": 9,
+      "name": "SCHEMA_VALIDATION",
+      "status": "PASS",
+      "evidence": "validate_schema(raw_df, EXPECTED_TRANSACTION_COLUMNS, \"bronze input\")",
+      "finding": "Schema validation is performed before transformations.",
+      "fix": "N/A"
+    },
+    {
+      "id": 10,
+      "name": "DEDUPLICATION",
+      "status": "PASS",
+      "evidence": "bronze_df = bronze_df.filter(col(\"rank\") == 1).drop(\"rank\")",
+      "finding": "Deduplication logic is present.",
+      "fix": "N/A"
+    },
+    {
+      "id": 11,
+      "name": "METADATA_OUTPUT",
+      "status": "PASS",
+      "evidence": "spark.sparkContext.parallelize([run_metadata]) \\.write.mode(\"overwrite\").json(f\"{gold_output_dir}/run_metadata\")",
+      "finding": "Metadata is written to a file.",
+      "fix": "N/A"
+    },
+    {
+      "id": 12,
+      "name": "IMPORTS",
+      "status": "PASS",
+      "evidence": "No wildcard imports found.",
+      "finding": "No wildcard imports used.",
+      "fix": "N/A"
+    }
+  ],
+  "summary": {
+    "pass_count": 12,
+    "fail_count": 0,
+    "warn_count": 0,
+    "merge_recommendation": "APPROVE",
+    "top_3_fixes": []
+  },
+  "reviewed_file": "pipeline_brain/generated_pipeline.py",
+  "reviewed_at": "2026-05-26T12:21:59.542328+00:00",
+  "model": "amazon.nova-pro-v1:0"
+}

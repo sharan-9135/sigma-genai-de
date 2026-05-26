@@ -1,0 +1,74 @@
+═══════════════════════════════════════════════════════════════
+MY REVIEW NOTES — Day 7 Code Review
+Sigma DataTech | Pipeline Brain
+═══════════════════════════════════════════════════════════════
+
+MANUAL FINDINGS (before running AI review):
+───────────────────────────────────────────
+
+1. RISK: No error handling around pipeline stages
+   - If Bronze ingest fails mid-write, Silver still tries to run on
+     incomplete/missing data. This could silently produce wrong results
+     or crash with a confusing Spark error.
+   - In production, a failed stage should halt the pipeline and alert
+     the on-call engineer — not cascade into downstream stages.
+
+2. CHANGE FOR PRODUCTION: Add observability (row count logging)
+   - There are zero log statements in the entire pipeline. If row counts
+     drop by 90% due to a bad source file, nobody would know until the
+     board deck shows wrong numbers — exactly the $47K incident.
+   - Every stage should log: rows read, rows after filter, rows written.
+
+═══════════════════════════════════════════════════════════════
+
+FIXES APPLIED IN fixed_pipeline.py:
+───────────────────────────────────────────
+
+FIX 1 — ERROR_HANDLING [was FAIL → now PASS]
+  What: Wrapped every pipeline stage (Bronze, Silver, Gold x3) in
+        try/except blocks with structured logging.
+  Why:  If any stage fails, the error is logged with the stage name
+        and the exception is re-raised to halt downstream execution.
+        No silent failures.
+
+FIX 2 — ROW_COUNT_LOGGING [was WARN → now PASS]
+  What: Added .count() + logger.info() after every read, filter,
+        dedup, join, and write operation across all layers.
+  Why:  Row count logging is the #1 way to catch data quality issues
+        early. If Bronze reads 1000 rows but Silver outputs 3, you
+        know something broke in the filter/dedup step.
+
+FIX 3 — SCHEMA_VALIDATION [was WARN → now PASS]
+  What: Added a validate_schema() function that checks required columns
+        exist before any transformation begins. Called at Bronze ingest
+        and before each Gold aggregation.
+  Why:  Schema drift is silent. If a source file drops a column,
+        Spark may fill it with NULLs instead of failing — leading to
+        wrong aggregations. Fail-fast is safer than wrong numbers.
+
+FIX 4 — HARDCODED_PATHS [was FAIL → now PASS]
+  What: Replaced literal S3 paths in the executable example blocks with
+        environment variables such as SIGMA_TRANSACTIONS_RAW_PATH and
+        SIGMA_GOLD_OUTPUT_DIR.
+  Why:  Deployment paths should come from runtime configuration, not
+        source code. This lets the same pipeline run in dev, staging,
+        and production without edits.
+
+═══════════════════════════════════════════════════════════════
+
+WHAT AI GOT RIGHT vs WRONG:
+───────────────────────────────────────────
+
+  RIGHT: AI correctly flagged all 3 real issues. The 12-point checklist
+         is a solid starting framework — it caught the missing error
+         handling that I also identified manually.
+
+  WRONG: The first AI review focused on the generated file and did not
+         account for the separate fixed copy. After applying the fixes
+         directly to generated_pipeline.py and fixed_pipeline.py, the
+         review now reports 12 PASS, 0 FAIL, 0 WARN.
+
+  LESSON: AI reviews patterns and syntax. Humans review business
+          intent and end-to-end correctness. Both are needed.
+
+═══════════════════════════════════════════════════════════════
