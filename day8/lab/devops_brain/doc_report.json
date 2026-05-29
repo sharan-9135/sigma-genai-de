@@ -1,6 +1,10 @@
 {
   "sprint": "doc_generator",
+<<<<<<< HEAD
   "generated_at": "2026-05-27T07:00:41.732758+00:00",
+=======
+  "generated_at": "2026-05-27T06:49:25.045680+00:00",
+>>>>>>> upstream/main
   "source_file": "buggy_pipeline.py",
   "source_chars": 8663,
   "source_lines": 258,
@@ -11,6 +15,7 @@
   },
   "token_usage": {
     "step1_annotate": {
+<<<<<<< HEAD
       "input": 2496,
       "output": 2972
     },
@@ -24,11 +29,31 @@
     },
     "total_input": 7659,
     "total_output": 4162
+=======
+      "input": 2486,
+      "output": 2987
+    },
+    "step2_runbook": {
+      "input": 2644,
+      "output": 715
+    },
+    "step3_design": {
+      "input": 2499,
+      "output": 428
+    },
+    "total_input": 7629,
+    "total_output": 4130
+>>>>>>> upstream/main
   },
   "output_files": {
     "documented_pipeline": "devops_brain/documented_pipeline.py",
     "runbook": "devops_brain/runbook.md",
     "design_doc": "devops_brain/design_doc.md"
   },
+<<<<<<< HEAD
   "student_judgment": "It should include secret remediation: rotate the exposed AWS keys immediately and remove them from git history, not just delete them from the current file."
 }
+=======
+  "student_judgment": "\u2502 causes silent data corruption that a runbook would have to manually troubleshoot"
+}
+>>>>>>> upstream/main

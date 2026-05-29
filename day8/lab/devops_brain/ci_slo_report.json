@@ -1,6 +1,10 @@
 {
   "sprint": "ci_slo",
+<<<<<<< HEAD
   "generated_at": "2026-05-27T15:45:27.312600",
+=======
+  "generated_at": "2026-05-27T15:55:50.769960",
+>>>>>>> upstream/main
   "models_used": {
     "workflow_generation": "amazon.nova-pro-v1:0",
     "slo_generation": "amazon.nova-pro-v1:0",
@@ -9,6 +13,7 @@
   "token_usage": {
     "ci_workflow": {
       "input": 469,
+<<<<<<< HEAD
       "output": 461
     },
     "slo_definitions": {
@@ -18,6 +23,17 @@
     "alert_rules": {
       "input": 552,
       "output": 678
+=======
+      "output": 464
+    },
+    "slo_definitions": {
+      "input": 473,
+      "output": 310
+    },
+    "alert_rules": {
+      "input": 567,
+      "output": 727
+>>>>>>> upstream/main
     }
   },
   "files_generated": [
@@ -33,5 +49,9 @@
     "WARNING": 3,
     "INFO": 2
   },
+<<<<<<< HEAD
   "student_judgment": "I disagree with a 24-hour freshness SLO for a financial pipeline; since the analytics dashboard is reviewed at 08:00 IST every morning, the freshness threshold should be set to 4 or 6 hours to ensure on-call engineers are alerted to failures in time for the daily meeting."
+=======
+  "student_judgment": "yes agree"
+>>>>>>> upstream/main
 }

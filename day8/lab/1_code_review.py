@@ -180,7 +180,8 @@ def accountability_gate(review_text):
 
     print(f"\nAI found {bug_count} bugs above. Look at the list carefully.")
 <<<<<<< HEAD
-    # If running non-interactively (CI/tests), auto-fill a sensible judgment
+    # If running non-interactively (CI/tests), auto-fill a
+    #  sensible judgment
     if not sys.stdin.isatty():
         print("  (Non-interactive session — recording a default judgment.)")
         return "Fix duplicate primary key error by ensuring unique transaction IDs (deduplicate upstream)."

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 -- models/staging/stg_fact_transactions.sql
 
 WITH raw_transactions AS (
@@ -25,6 +26,20 @@ cleaned_transactions AS (
         CURRENT_TIMESTAMP AS loaded_at
     FROM 
         raw_transactions
+=======
+WITH cleaned_transactions AS (
+    SELECT
+        LOWER(transaction_id) AS transaction_id,
+        CAST(amount AS DECIMAL(10, 2)) AS amount,
+        LOWER(status) AS status,
+        LOWER(merchant_id) AS merchant_id,
+        LOWER(customer_id) AS customer_id,
+        CAST(transaction_date AS DATE) AS transaction_date,
+        LOWER(payment_method) AS payment_method,
+        CURRENT_TIMESTAMP AS loaded_at
+    FROM 
+        {{ source('sigma_analytics', 'fact_transactions') }}
+>>>>>>> upstream/main
     WHERE 
         merchant_id NOT LIKE 'TEST_%'
 )
@@ -33,7 +48,10 @@ SELECT * FROM cleaned_transactions
 ```
 
 ```yaml
+<<<<<<< HEAD
 # models/staging/schema.yml
+=======
+>>>>>>> upstream/main
 version: 2
 
 models:
@@ -54,7 +72,11 @@ models:
         tests:
           - not_null
           - accepted_values:
+<<<<<<< HEAD
               values: ["completed", "failed", "pending"]
+=======
+              values: ['completed', 'failed', 'pending']
+>>>>>>> upstream/main
       - name: merchant_id
         description: "Foreign key referencing dim_merchant."
         tests:
@@ -78,8 +100,14 @@ models:
         tests:
           - not_null
           - accepted_values:
+<<<<<<< HEAD
               values: ["credit_card", "debit_card", "upi"]
       - name: loaded_at
         description: "Timestamp when the data was loaded into the staging table."
+=======
+              values: ['credit_card', 'debit_card', 'upi']
+      - name: loaded_at
+        description: "Timestamp when the data was loaded."
+>>>>>>> upstream/main
         tests:
           - not_null

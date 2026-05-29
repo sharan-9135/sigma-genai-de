@@ -8,7 +8,11 @@
         "max_value": 30
       },
       "meta": {
+<<<<<<< HEAD
         "notes": "After Bronze -> Silver transform, we expect 18-22 rows"
+=======
+        "notes": "Ensure the row count is within the expected range after Bronze -> Silver transform."
+>>>>>>> upstream/main
       }
     },
     {
@@ -17,7 +21,11 @@
         "column": "transaction_id"
       },
       "meta": {
+<<<<<<< HEAD
         "notes": "All transaction_ids must be non-null (nulls were filtered in Bronze)"
+=======
+        "notes": "All transaction_ids must be non-null."
+>>>>>>> upstream/main
       }
     },
     {
@@ -26,7 +34,11 @@
         "column": "amount"
       },
       "meta": {
+<<<<<<< HEAD
         "notes": "All amounts must be >= 0 (negatives were filtered in Bronze)"
+=======
+        "notes": "All amounts must be non-null."
+>>>>>>> upstream/main
       }
     },
     {
@@ -35,7 +47,11 @@
         "column": "status"
       },
       "meta": {
+<<<<<<< HEAD
         "notes": "status must not be null"
+=======
+        "notes": "All statuses must be non-null."
+>>>>>>> upstream/main
       }
     },
     {
@@ -44,7 +60,11 @@
         "column": "transaction_date"
       },
       "meta": {
+<<<<<<< HEAD
         "notes": "transaction_date must not be null"
+=======
+        "notes": "All transaction dates must be non-null."
+>>>>>>> upstream/main
       }
     },
     {
@@ -54,7 +74,11 @@
         "min_value": 0
       },
       "meta": {
+<<<<<<< HEAD
         "notes": "All amounts must be >= 0"
+=======
+        "notes": "All amounts must be greater than or equal to 0."
+>>>>>>> upstream/main
       }
     },
     {
@@ -63,13 +87,18 @@
         "column": "transaction_id"
       },
       "meta": {
+<<<<<<< HEAD
         "notes": "No duplicate transaction_ids should exist in silver"
+=======
+        "notes": "No duplicate transaction_ids should exist."
+>>>>>>> upstream/main
       }
     },
     {
       "expectation_type": "expect_column_values_to_be_in_set",
       "kwargs": {
         "column": "status",
+<<<<<<< HEAD
         "value_set": [
           "COMPLETED",
           "FAILED",
@@ -78,12 +107,19 @@
       },
       "meta": {
         "notes": "status must be one of COMPLETED, FAILED, PENDING"
+=======
+        "value_set": ["COMPLETED", "FAILED", "PENDING"]
+      },
+      "meta": {
+        "notes": "Status must be one of the allowed values: COMPLETED, FAILED, PENDING."
+>>>>>>> upstream/main
       }
     },
     {
       "expectation_type": "expect_column_values_to_be_in_set",
       "kwargs": {
         "column": "quality_flag",
+<<<<<<< HEAD
         "value_set": [
           "CLEAN",
           "UNMATCHED"
@@ -91,6 +127,12 @@
       },
       "meta": {
         "notes": "quality_flag must be either CLEAN or UNMATCHED"
+=======
+        "value_set": ["CLEAN", "UNMATCHED"]
+      },
+      "meta": {
+        "notes": "Quality flag must be either CLEAN or UNMATCHED."
+>>>>>>> upstream/main
       }
     },
     {
@@ -98,10 +140,17 @@
       "kwargs": {
         "column": "amount",
         "min_value": 100,
+<<<<<<< HEAD
         "max_value": 10000
       },
       "meta": {
         "notes": "The mean of the amount column should be between 100 and 10000 for this lab fixture."
+=======
+        "max_value": 5000
+      },
+      "meta": {
+        "notes": "The mean of the amounts should be between 100 and 5000."
+>>>>>>> upstream/main
       }
     }
   ],

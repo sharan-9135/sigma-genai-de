@@ -4,94 +4,156 @@
       "id": 1,
       "name": "IDEMPOTENCY",
       "status": "PASS",
+<<<<<<< HEAD
       "evidence": "No violation found",
       "finding": "All writes use 'overwrite' mode.",
       "fix": "N/A"
+=======
+      "finding": "All write operations use overwrite mode.",
+      "fix": "None required."
+>>>>>>> upstream/main
     },
     {
       "id": 2,
       "name": "ERROR_HANDLING",
+<<<<<<< HEAD
       "status": "PASS",
       "evidence": "try/except blocks present in main() and run_gold()",
       "finding": "Proper error handling is implemented.",
       "fix": "N/A"
+=======
+      "status": "FAIL",
+      "finding": "No try/except blocks around pipeline stages.",
+      "fix": "Wrap each pipeline stage in try/except blocks."
+>>>>>>> upstream/main
     },
     {
       "id": 3,
       "name": "PARTITION_PRUNING",
       "status": "PASS",
+<<<<<<< HEAD
       "evidence": "bronze_df = spark.read.parquet(f\"{bronze_path}/load_date={run_date}\")",
       "finding": "Partition pruning is applied using 'load_date'.",
       "fix": "N/A"
+=======
+      "finding": "Read operations are filtered by date/partition column.",
+      "fix": "None required."
+>>>>>>> upstream/main
     },
     {
       "id": 4,
       "name": "ROW_COUNT_LOGGING",
+<<<<<<< HEAD
       "status": "PASS",
       "evidence": "logger.info(\"[Stage: ingest_bronze] input_count: %s rows\", f\"{input_count:,}\")",
       "finding": "Row counts are logged after transformations.",
       "fix": "N/A"
+=======
+      "status": "WARN",
+      "finding": "No row count logging after transformation stages.",
+      "fix": "Add logging for row counts after each transformation stage."
+>>>>>>> upstream/main
     },
     {
       "id": 5,
       "name": "BUSINESS_RULES",
       "status": "PASS",
+<<<<<<< HEAD
       "evidence": "completed_txns = silver_df.filter(col(\"status\") == \"COMPLETED\")",
       "finding": "Aggregations are filtered by'status=COMPLETED'.",
       "fix": "N/A"
+=======
+      "finding": "Revenue is calculated as SUM(amount) WHERE status='COMPLETED'.",
+      "fix": "None required."
+>>>>>>> upstream/main
     },
     {
       "id": 6,
       "name": "NULL_HANDLING",
+<<<<<<< HEAD
       "status": "PASS",
       "evidence": "bronze_df = bronze_df.filter((col(\"transaction_id\").isNotNull()) & (col(\"amount\") >= 0))",
       "finding": "NULL handling is implemented.",
       "fix": "N/A"
+=======
+      "status": "WARN",
+      "finding": "No NULL checks on primary key and critical columns.",
+      "fix": "Add NULL checks on primary key and critical columns."
+>>>>>>> upstream/main
     },
     {
       "id": 7,
       "name": "BROADCAST_HINT",
+<<<<<<< HEAD
       "status": "PASS",
       "evidence": "merchants_df = broadcast(merchants_df)",
       "finding": "Broadcast hint is used on join operations.",
       "fix": "N/A"
+=======
+      "status": "WARN",
+      "finding": "broadcast() is not used on the merchant dimension join.",
+      "fix": "Use broadcast() on the merchant dimension join."
+>>>>>>> upstream/main
     },
     {
       "id": 8,
       "name": "HARDCODED_PATHS",
+<<<<<<< HEAD
       "status": "PASS",
       "evidence": "Paths are read from environment variables.",
       "finding": "No hardcoded paths found.",
       "fix": "N/A"
+=======
+      "status": "FAIL",
+      "finding": "File paths are hardcoded as strings.",
+      "fix": "Use parameters instead of hardcoded file paths."
+>>>>>>> upstream/main
     },
     {
       "id": 9,
       "name": "SCHEMA_VALIDATION",
+<<<<<<< HEAD
       "status": "PASS",
       "evidence": "validate_schema(raw_df, EXPECTED_TRANSACTION_COLUMNS, \"bronze input\")",
       "finding": "Schema validation is performed before transformations.",
       "fix": "N/A"
+=======
+      "status": "WARN",
+      "finding": "No schema validation before transforming.",
+      "fix": "Add schema validation to check expected columns."
+>>>>>>> upstream/main
     },
     {
       "id": 10,
       "name": "DEDUPLICATION",
       "status": "PASS",
+<<<<<<< HEAD
       "evidence": "bronze_df = bronze_df.filter(col(\"rank\") == 1).drop(\"rank\")",
       "finding": "Deduplication logic is present.",
       "fix": "N/A"
+=======
+      "finding": "Explicit dedup logic on transaction_id is present.",
+      "fix": "None required."
+>>>>>>> upstream/main
     },
     {
       "id": 11,
       "name": "METADATA_OUTPUT",
       "status": "PASS",
+<<<<<<< HEAD
       "evidence": "spark.sparkContext.parallelize([run_metadata]) \\.write.mode(\"overwrite\").json(f\"{gold_output_dir}/run_metadata\")",
       "finding": "Metadata is written to a file.",
       "fix": "N/A"
+=======
+      "finding": "Pipeline writes a run summary JSON at the end.",
+      "fix": "None required."
+>>>>>>> upstream/main
     },
     {
       "id": 12,
       "name": "IMPORTS",
       "status": "PASS",
+<<<<<<< HEAD
       "evidence": "No wildcard imports found.",
       "finding": "No wildcard imports used.",
       "fix": "N/A"
@@ -106,5 +168,24 @@
   },
   "reviewed_file": "pipeline_brain/generated_pipeline.py",
   "reviewed_at": "2026-05-26T12:21:59.542328+00:00",
+=======
+      "finding": "All imports are present and specific.",
+      "fix": "None required."
+    }
+  ],
+  "summary": {
+    "pass_count": 6,
+    "fail_count": 2,
+    "warn_count": 4,
+    "merge_recommendation": "APPROVE_WITH_CHANGES",
+    "top_3_fixes": [
+      "Wrap each pipeline stage in try/except blocks.",
+      "Add logging for row counts after each transformation stage.",
+      "Use parameters instead of hardcoded file paths."
+    ]
+  },
+  "reviewed_file": "pipeline_brain\\generated_pipeline.py",
+  "reviewed_at": "2026-05-26T11:10:54.020507+00:00",
+>>>>>>> upstream/main
   "model": "amazon.nova-pro-v1:0"
 }

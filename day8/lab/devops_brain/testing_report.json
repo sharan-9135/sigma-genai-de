@@ -1,6 +1,10 @@
 {
   "sprint": "testing_sprint",
+<<<<<<< HEAD
   "generated_at": "2026-05-27T12:41:41.534568+00:00",
+=======
+  "generated_at": "2026-05-27T10:22:49.917732+00:00",
+>>>>>>> upstream/main
   "models_used": {
     "pytest_suite": "amazon.nova-pro-v1:0",
     "ge_suite": "amazon.nova-lite-v1:0"
@@ -8,6 +12,7 @@
   "token_usage": {
     "step1_pytest": {
       "input": 1821,
+<<<<<<< HEAD
       "output": 1369
     },
     "step2_ge": {
@@ -16,6 +21,16 @@
     },
     "total_input": 2407,
     "total_output": 2172
+=======
+      "output": 1028
+    },
+    "step2_ge": {
+      "input": 586,
+      "output": 785
+    },
+    "total_input": 2407,
+    "total_output": 1813
+>>>>>>> upstream/main
   },
   "pytest": {
     "file": "devops_brain/test_pipeline.py",
@@ -76,6 +91,7 @@
           "status": "PASS"
         },
         {
+<<<<<<< HEAD
           "check": "mean amount between 100 and 10000",
           "value": "6350.56",
           "status": "PASS"
@@ -87,4 +103,17 @@
     }
   },
   "student_judgment": "the weakest test is the intentional zero-amount revenue assertion because it passes while proving nothing about whether zero-amount transactions should be blocked earlier"
+=======
+          "check": "mean amount between 100 and 5000",
+          "value": "6350.56",
+          "status": "FAIL"
+        }
+      ],
+      "passed": 9,
+      "failed": 1,
+      "total": 10
+    }
+  },
+  "student_judgment": "test_null_transaction_id_filtered"
+>>>>>>> upstream/main
 }
