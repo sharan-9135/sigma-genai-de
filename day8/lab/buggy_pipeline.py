@@ -6,8 +6,13 @@ from sample_data import TRANSACTIONS_CLEAN, TRANSACTIONS_DIRTY, MERCHANTS
 
 DB_PATH = "sigma_datatech.duckdb"
 
+<<<<<<< HEAD
 access_key = "AKIA_MOCK_ACCESS_KEY"
 secret_key = "mock_aws_secret_access_key"
+=======
+access_key = "AKIAIOSFODNN7EXAMPLE"
+secret_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+>>>>>>> upstream/main
 region = "us-east-1"
 bucket = "sigma-datatech-pipeline-prod"
 

@@ -74,12 +74,19 @@ except ImportError:
 
 try:
     import pandas as pd
+<<<<<<< HEAD
+=======
+    import numpy as np
+    if not hasattr(np, 'float_'):
+        np.float_ = np.float64
+>>>>>>> upstream/main
 except ImportError:
     print("[ERROR] pandas not installed. Run: pip install pandas")
     sys.exit(1)
 
 # Evidently import — graceful fallback if not installed
 try:
+<<<<<<< HEAD
     try:
         from evidently.report import Report
         from evidently.metric_preset import DataQualityPreset, DataDriftPreset
@@ -87,6 +94,11 @@ try:
         # Support for Evidently v0.7+ where previous APIs are in the legacy namespace
         from evidently.legacy.report import Report
         from evidently.legacy.metric_preset import DataQualityPreset, DataDriftPreset
+=======
+    from evidently.report import Report
+    from evidently.metrics import DatasetSummaryMetric, DatasetMissingValuesMetric
+    from evidently.metric_preset import DataDriftPreset
+>>>>>>> upstream/main
     EVIDENTLY_AVAILABLE = True
 except ImportError:
     EVIDENTLY_AVAILABLE = False
@@ -160,10 +172,17 @@ def run_quality_report(silver_df: pd.DataFrame) -> dict:
     """
     print("\n[Evidently] Step 2: Generating DataQualityReport for Silver layer...")
 
+<<<<<<< HEAD
     report = Report(metrics=[DataQualityPreset()])
     # Evidently needs a reference — use the Silver DF as both current and reference
     # (quality report does not require a separate reference dataset)
     report.run(current_data=silver_df, reference_data=None)
+=======
+    # DataQualityPreset includes DatasetCorrelationsMetric which crashes on read-only
+    # numpy arrays in Evidently 0.7.x — use individual metrics instead
+    report = Report(metrics=[DatasetSummaryMetric(), DatasetMissingValuesMetric()])
+    report.run(current_data=silver_df.copy(deep=True), reference_data=None)
+>>>>>>> upstream/main
 
     html_path = os.path.join(OBS_DIR, "silver_quality_report.html")
     report.save_html(html_path)
@@ -217,7 +236,11 @@ def run_drift_report(bronze_df: pd.DataFrame, silver_df: pd.DataFrame) -> dict:
         ref_df = ref_df.sample(n=len(curr_df), random_state=42)
 
     report = Report(metrics=[DataDriftPreset()])
+<<<<<<< HEAD
     report.run(reference_data=ref_df, current_data=curr_df)
+=======
+    report.run(reference_data=ref_df.copy(deep=True), current_data=curr_df.copy(deep=True))
+>>>>>>> upstream/main
 
     html_path = os.path.join(OBS_DIR, "bronze_silver_drift_report.html")
     report.save_html(html_path)

@@ -19,7 +19,22 @@ MASTER_TIER = {
             "pipeline_brain/schema_drift_report.json",
             "pipeline_brain/code_review.json",
         ],
+<<<<<<< HEAD
     }
+=======
+    },
+    8: {
+        "core": [
+            "devops_brain/code_review_report.json",
+            "devops_brain/doc_report.json",
+            "devops_brain/testing_report.json",
+            "devops_brain/ci_slo_report.json",
+        ],
+        "extra": [
+            "devops_brain/observability_report.json",
+        ],
+    },
+>>>>>>> upstream/main
 }
 
 EXPECTED_FILES = {
@@ -36,12 +51,20 @@ EXPECTED_FILES = {
         "pipeline_brain/code_review.json": "Review",
     },
     8: {
+<<<<<<< HEAD
         "devops_brain/code_review_report.json":    "Review",
         "devops_brain/doc_report.json":            "Docs",
         "devops_brain/testing_report.json":        "Tests",
         "devops_brain/ci_slo_report.json":         "CI/SLO",
         "devops_brain/observability_report.json":  "Observe",
         "devops_brain/competitive/scorecard.json": "Ship",
+=======
+        "devops_brain/code_review_report.json":   "Review",
+        "devops_brain/doc_report.json":           "Docs",
+        "devops_brain/testing_report.json":       "Tests",
+        "devops_brain/ci_slo_report.json":        "CI/SLO",
+        "devops_brain/observability_report.json": "Observe",
+>>>>>>> upstream/main
     },
 }
 

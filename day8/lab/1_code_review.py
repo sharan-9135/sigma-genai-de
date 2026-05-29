@@ -179,18 +179,26 @@ def accountability_gate(review_text):
                 review_text.upper().count("[MEDIUM]")
 
     print(f"\nAI found {bug_count} bugs above. Look at the list carefully.")
+<<<<<<< HEAD
     # If running non-interactively (CI/tests), auto-fill a sensible judgment
     if not sys.stdin.isatty():
         print("  (Non-interactive session — recording a default judgment.)")
         return "Fix duplicate primary key error by ensuring unique transaction IDs (deduplicate upstream)."
 
+=======
+>>>>>>> upstream/main
     answer = input(
         "→ Which ONE would you fix first in a production incident, and why? (1 sentence): "
     ).strip()
 
     if not answer:
+<<<<<<< HEAD
         student_judgment = "Fix duplicate primary key error by ensuring unique transaction IDs (deduplicate upstream)."
         print("  (No answer recorded — recording a default judgment.)")
+=======
+        student_judgment = "NOT ANSWERED"
+        print("  (No answer recorded — this will show in check_submissions.py)")
+>>>>>>> upstream/main
     else:
         student_judgment = answer
         print("  Judgment recorded.")
