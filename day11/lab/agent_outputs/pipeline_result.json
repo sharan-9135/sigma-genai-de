@@ -1,0 +1,164 @@
+{
+  "pattern": "sequential_pipeline",
+  "timestamp": "2026-06-01T14:41:50.894942",
+  "input_file": {
+    "filename": "transactions_raw.csv",
+    "row_count": 500,
+    "columns": [
+      "transaction_id",
+      "merchant_name",
+      "category",
+      "amount",
+      "currency",
+      "transaction_date",
+      "status",
+      "customer_id",
+      "payment_method",
+      "merchant_city"
+    ],
+    "sample_issues": [
+      "4 blank transaction_ids",
+      "7 null amounts",
+      "3 negative amounts",
+      "2 invalid dates",
+      "1 unknown currency"
+    ]
+  },
+  "stages": [
+    {
+      "completeness_percentage": 95.6,
+      "key_issues": [
+        "4 blank transaction_ids",
+        "7 null amounts",
+        "3 negative amounts",
+        "2 invalid dates",
+        "1 unknown currency"
+      ],
+      "recommended_next_action": "Perform data cleaning to handle blank transaction_ids, null and negative amounts, invalid dates, and unknown currency. Validate and correct or remove erroneous data before passing to the next stage.",
+      "pass_to_next": {
+        "filename": "transactions_raw.csv",
+        "row_count": 500,
+        "columns": [
+          "transaction_id",
+          "merchant_name",
+          "category",
+          "amount",
+          "currency",
+          "transaction_date",
+          "status",
+          "customer_id",
+          "payment_method",
+          "merchant_city"
+        ],
+        "sample_issues": [
+          "4 blank transaction_ids",
+          "7 null amounts",
+          "3 negative amounts",
+          "2 invalid dates",
+          "1 unknown currency"
+        ]
+      },
+      "_stage": "Profile",
+      "_agent": "Profiler Agent",
+      "_timestamp": "2026-06-01T14:41:46.692650"
+    },
+    {
+      "quality_rules": [
+        {
+          "rule": "No blank transaction_ids",
+          "classification": "block-load",
+          "description": "Transactions must have a valid transaction_id to be processed. Blank transaction_ids will prevent accurate tracking and reporting."
+        },
+        {
+          "rule": "No negative amounts",
+          "classification": "quarantine",
+          "description": "Transaction amounts should not be negative. Negative amounts may indicate errors in data entry or processing and need to be reviewed."
+        },
+        {
+          "rule": "Valid dates",
+          "classification": "quarantine",
+          "description": "All transaction dates must be valid. Invalid dates can lead to incorrect time-series analysis and reporting."
+        }
+      ],
+      "pass_to_next": {
+        "filename": "transactions_raw.csv",
+        "row_count": 500,
+        "columns": [
+          "transaction_id",
+          "merchant_name",
+          "category",
+          "amount",
+          "currency",
+          "transaction_date",
+          "status",
+          "customer_id",
+          "payment_method",
+          "merchant_city"
+        ],
+        "sample_issues": [
+          "4 blank transaction_ids",
+          "7 null amounts",
+          "3 negative amounts",
+          "2 invalid dates",
+          "1 unknown currency"
+        ],
+        "resolved_issues": {
+          "blank_transaction_ids": 4,
+          "null_amounts": 7,
+          "negative_amounts": 3,
+          "invalid_dates": 2,
+          "unknown_currency": 1
+        }
+      },
+      "_stage": "Validate",
+      "_agent": "Quality Agent",
+      "_timestamp": "2026-06-01T14:41:49.012752"
+    },
+    {
+      "load_decision": "quarantined_partial",
+      "justification": "The file has several issues that can be partially resolved, but not all issues are critical enough to reject the file outright.",
+      "findings": {
+        "blank_transaction_ids": 4,
+        "null_amounts": 7,
+        "negative_amounts": 3,
+        "invalid_dates": 2,
+        "unknown_currency": 1
+      },
+      "pass_to_next": {
+        "filename": "transactions_raw.csv",
+        "row_count": 500,
+        "columns": [
+          "transaction_id",
+          "merchant_name",
+          "category",
+          "amount",
+          "currency",
+          "transaction_date",
+          "status",
+          "customer_id",
+          "payment_method",
+          "merchant_city"
+        ],
+        "sample_issues": [
+          "4 blank transaction_ids",
+          "7 null amounts",
+          "3 negative amounts",
+          "2 invalid dates",
+          "1 unknown currency"
+        ],
+        "resolved_issues": {
+          "blank_transaction_ids": 4,
+          "null_amounts": 7,
+          "negative_amounts": 3,
+          "invalid_dates": 2,
+          "unknown_currency": 1
+        }
+      },
+      "_stage": "LoadDecision",
+      "_agent": "Loader Agent",
+      "_timestamp": "2026-06-01T14:41:50.893716"
+    }
+  ],
+  "final_decision": "quarantined_partial",
+  "student_judgment": "Two agents could make conflicting decisions on the same file at the same time, such as one loading cleaned rows while another quarantines or rewrites them, so I would add a run-level lock/idempotency key per input file."
+}

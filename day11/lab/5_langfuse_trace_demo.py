@@ -40,13 +40,91 @@ RUN:
 import boto3, json, os, time
 from datetime import datetime
 from langfuse import Langfuse
-from langfuse.decorators import observe, langfuse_context
+try:
+    # Langfuse v2
+    from langfuse.decorators import observe, langfuse_context
+except ModuleNotFoundError:
+    # Langfuse v3+
+    from langfuse import observe, get_client
+    langfuse_context = None
 
 # ── Init ──────────────────────────────────────────────────────────────────────
 lf     = Langfuse()
 client = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_DEFAULT_REGION", "us-east-1"))
 MODEL  = "amazon.nova-lite-v1:0"
 RUN_ID = datetime.now().strftime("%H%M%S")
+
+
+def update_trace(name: str, tags: list[str], metadata: dict) -> None:
+    if langfuse_context is not None:
+        langfuse_context.update_current_trace(name=name, tags=tags, metadata=metadata)
+        return
+
+    lf_client = get_client()
+    if hasattr(lf_client, "update_current_trace"):
+        lf_client.update_current_trace(name=name, tags=tags, metadata=metadata)
+    elif hasattr(lf_client, "update_current_span"):
+        # Langfuse v3 traces @observe() calls as spans. Tags are not always
+        # accepted on spans, so keep them in metadata for dashboard filtering.
+        span_metadata = {**metadata, "tags": tags}
+        try:
+            lf_client.update_current_span(name=name, metadata=span_metadata)
+        except TypeError:
+            lf_client.update_current_span(metadata=span_metadata)
+
+
+def update_observation(input_text: str, output_text: str, usage: dict, metadata: dict) -> None:
+    if langfuse_context is not None:
+        langfuse_context.update_current_observation(
+            input=input_text,
+            output=output_text,
+            usage=usage,
+            metadata=metadata,
+        )
+        return
+
+    lf_client = get_client()
+    if hasattr(lf_client, "update_current_observation"):
+        lf_client.update_current_observation(
+            input=input_text,
+            output=output_text,
+            usage_details={
+                "input": usage.get("input", 0),
+                "output": usage.get("output", 0),
+            },
+            metadata=metadata,
+        )
+    elif hasattr(lf_client, "update_current_span"):
+        span_metadata = {
+            **metadata,
+            "prompt": input_text,
+            "model_output": output_text,
+            "usage": usage,
+        }
+        try:
+            lf_client.update_current_span(
+                input=input_text,
+                output=output_text,
+                usage_details={
+                    "input": usage.get("input", 0),
+                    "output": usage.get("output", 0),
+                },
+                metadata=span_metadata,
+            )
+        except TypeError:
+            lf_client.update_current_span(metadata=span_metadata)
+
+
+def get_current_trace_id() -> str | None:
+    if langfuse_context is not None:
+        return langfuse_context.get_current_trace_id()
+
+    lf_client = get_client()
+    for attr in ("get_current_trace_id", "get_current_span_id"):
+        getter = getattr(lf_client, attr, None)
+        if getter:
+            return getter()
+    return None
 
 # ── 5 transactions from last night's batch ────────────────────────────────────
 TRANSACTIONS = [
@@ -134,7 +212,7 @@ def evaluate_transaction(txn: dict) -> dict:
     prompt = build_prompt(txn)
 
     # Tag this trace so you can filter in Langfuse dashboard
-    langfuse_context.update_current_trace(
+    update_trace(
         name=f"quality-check-{txn['id']}",
         tags=["day11", "quality-agent", f"run-{RUN_ID}"],
         metadata={
@@ -170,9 +248,9 @@ def evaluate_transaction(txn: dict) -> dict:
     correct  = decision == txn["expected"]
 
     # Log the observation — this is what you see in Langfuse
-    langfuse_context.update_current_observation(
-        input=prompt,
-        output=text,
+    update_observation(
+        input_text=prompt,
+        output_text=text,
         usage={
             "input":  usage.get("inputTokens", 0),
             "output": usage.get("outputTokens", 0),
@@ -188,12 +266,17 @@ def evaluate_transaction(txn: dict) -> dict:
 
     # Score the trace — 1.0 = correct, 0.0 = wrong decision
     # This is what a production eval pipeline does automatically
-    lf.score(
-        trace_id=langfuse_context.get_current_trace_id(),
-        name="decision-correct",
-        value=1.0 if correct else 0.0,
-        comment=f"Expected {txn['expected']}, got {decision}. {result.get('reason','')}",
-    )
+    trace_id = get_current_trace_id()
+    if trace_id:
+        try:
+            lf.score(
+                trace_id=trace_id,
+                name="decision-correct",
+                value=1.0 if correct else 0.0,
+                comment=f"Expected {txn['expected']}, got {decision}. {result.get('reason','')}",
+            )
+        except Exception as e:
+            print(f"\n  [WARN] Langfuse score skipped: {e}")
 
     return {
         "id":        txn["id"],
