@@ -26,77 +26,40 @@ YOUR JOB:
 Without Langfuse: you would grep through 847 log lines and maybe find it.
 With Langfuse: 30 seconds.
 
-SETUP (one-time — ~5 minutes)
-----------------------------------
-STEP 1 — Create free Langfuse account:
-  Go to https://cloud.langfuse.com → Sign Up (use your Gmail)
-  Create a new project → name it "sigma-datatech"
-
-STEP 2 — Get your API keys:
-  Inside your project → click Settings (left sidebar) → API Keys
-  Click "Create new API key"
-  Copy both:
-    Public Key  →  starts with  pk-lf-...
-    Secret Key  →  starts with  sk-lf-...
-  (You only see the secret key ONCE — copy it now)
-
-STEP 3 — Set environment variables (run in your terminal BEFORE running this script):
-
-  Windows PowerShell (blue window):
-    $env:LANGFUSE_PUBLIC_KEY = "pk-lf-xxxx"
-    $env:LANGFUSE_SECRET_KEY = "sk-lf-xxxx"
-    $env:LANGFUSE_HOST       = "https://cloud.langfuse.com"
-
-  Windows Command Prompt (C:\\> black window):
-    set LANGFUSE_PUBLIC_KEY=pk-lf-xxxx
-    set LANGFUSE_SECRET_KEY=sk-lf-xxxx
-    set LANGFUSE_HOST=https://cloud.langfuse.com
-    (no quotes, no spaces around the = sign)
-
-  Mac/Linux terminal:
-    export LANGFUSE_PUBLIC_KEY="pk-lf-xxxx"
-    export LANGFUSE_SECRET_KEY="sk-lf-xxxx"
-    export LANGFUSE_HOST="https://cloud.langfuse.com"
-
-STEP 4 — Install the library:
-  pip install langfuse
+SETUP (one-time):
+  pip install langfuse boto3 --break-system-packages -q
+  export LANGFUSE_PUBLIC_KEY="pk-lf-..."
+  export LANGFUSE_SECRET_KEY="sk-lf-..."
+  export LANGFUSE_HOST="https://cloud.langfuse.com"
 
 RUN:
-  python 5_langfuse_trace_demo.py
-
-VERIFY:
-  After running, go to https://cloud.langfuse.com → your project → Traces
-  You should see 5 traces appear within 10 seconds.
-
-WHAT YOU WILL SEE IN LANGFUSE
-------------------------------
-Each trace = one LLM call for one transaction. For each trace you will see:
-
-  Traces list (main screen):
-    - Trace name      e.g. "quality-check-TXN100489"
-    - Tags            day11, quality-agent, run-HHMMSS
-    - Score           1.0 = correct decision, 0.0 = wrong decision  ← find the red one
-    - Latency         how long the Bedrock call took (ms)
-    - Token count     input + output tokens used
-
-  Click any trace to drill in:
-    - Input           the exact prompt sent to the LLM (merchant, amount, date, rules)
-    - Output          the raw JSON the LLM returned  {"decision": "...", "reason": "..."}
-    - Metadata        transaction_id, merchant name, amount, expected vs actual decision
-    - Score detail    comment showing "Expected PASS, got FLAG. Reason: ..."
-
-  The bad trace (score = 0.0):
-    TXN100489 — Apollo Hospital — ₹9,80,000
-    The LLM said FLAG because it saw a large amount with no merchant category.
-    In the Input panel you will notice: no "merchant_category" field in the prompt.
-    That is the missing context. Fix build_prompt() → re-run → score flips to 1.0.
+  python lab/5_langfuse_trace_demo.py
 ==============================================================================
 """
 
-import boto3, json, os, time
+import json, os, time
 from datetime import datetime
-from langfuse import Langfuse
-from langfuse.decorators import observe, langfuse_context
+
+try:
+    import boto3
+except ModuleNotFoundError:
+    print("[ERROR] boto3 not installed. Run: pip install boto3 langfuse")
+    raise
+
+try:
+    from langfuse import Langfuse
+except ModuleNotFoundError:
+    print("[ERROR] langfuse not installed. Run: pip install langfuse")
+    raise
+
+try:
+    # Langfuse v2
+    from langfuse.decorators import observe, langfuse_context
+    get_client = None
+except ModuleNotFoundError:
+    # Langfuse v3+
+    from langfuse import observe, get_client
+    langfuse_context = None
 
 # ── Init ──────────────────────────────────────────────────────────────────────
 lf     = Langfuse()
@@ -106,6 +69,7 @@ RUN_ID = datetime.now().strftime("%H%M%S")
 
 
 def update_trace(name: str, tags: list[str], metadata: dict) -> None:
+    """Update the active Langfuse trace/span across Langfuse v2 and v3 APIs."""
     if langfuse_context is not None:
         langfuse_context.update_current_trace(name=name, tags=tags, metadata=metadata)
         return
@@ -114,8 +78,6 @@ def update_trace(name: str, tags: list[str], metadata: dict) -> None:
     if hasattr(lf_client, "update_current_trace"):
         lf_client.update_current_trace(name=name, tags=tags, metadata=metadata)
     elif hasattr(lf_client, "update_current_span"):
-        # Langfuse v3 traces @observe() calls as spans. Tags are not always
-        # accepted on spans, so keep them in metadata for dashboard filtering.
         span_metadata = {**metadata, "tags": tags}
         try:
             lf_client.update_current_span(name=name, metadata=span_metadata)
@@ -124,6 +86,7 @@ def update_trace(name: str, tags: list[str], metadata: dict) -> None:
 
 
 def update_observation(input_text: str, output_text: str, usage: dict, metadata: dict) -> None:
+    """Attach prompt/output details to the active Langfuse observation/span."""
     if langfuse_context is not None:
         langfuse_context.update_current_observation(
             input=input_text,
@@ -183,7 +146,7 @@ TRANSACTIONS = [
         "merchant": "QuickMart",
         "amount": 4521.50,
         "currency": "INR",
-        "date": "2025-11-15",
+        "date": "2026-06-01",
         "note": "Standard retail transaction",
         "expected": "PASS",
     },
@@ -192,7 +155,7 @@ TRANSACTIONS = [
         "merchant": "FuelPlus",
         "amount": -892.00,
         "currency": "INR",
-        "date": "2025-11-18",
+        "date": "2026-06-01",
         "note": "Negative amount — refund or error",
         "expected": "QUARANTINE",
     },
@@ -201,7 +164,7 @@ TRANSACTIONS = [
         "merchant": "Apollo Hospital",
         "amount": 980000.00,
         "currency": "INR",
-        "date": "2025-11-20",
+        "date": "2026-06-01",
         # ← THIS IS THE BAD PROMPT — it omits merchant context
         # The agent sees only the amount and flags it as outlier
         # Fix: add "merchant_category: healthcare" to the prompt
@@ -213,7 +176,7 @@ TRANSACTIONS = [
         "merchant": "CloudStore",
         "amount": 15230.00,
         "currency": "XYZ",
-        "date": "2025-11-22",
+        "date": "2026-06-01",
         "note": "Unknown currency code",
         "expected": "QUARANTINE",
     },
@@ -229,6 +192,14 @@ TRANSACTIONS = [
 ]
 
 # ── Prompt builder — THIS is what you fix ─────────────────────────────────────
+CATEGORIES = {
+    "QuickMart": "Retail/Grocery",
+    "FuelPlus": "Fuel Station",
+    "Apollo Hospital": "Healthcare/Hospital",
+    "CloudStore": "Software/SaaS",
+    "CafeBlend": "Food/Beverage"
+}
+
 def build_prompt(txn: dict) -> str:
     """
     Build the quality-check prompt for a transaction.
@@ -237,19 +208,24 @@ def build_prompt(txn: dict) -> str:
     merchant_category. The LLM sees ₹9,80,000 with no context and flags it
     as an outlier. Fix: add merchant_category to the prompt for all transactions.
     """
+    category = CATEGORIES.get(txn['merchant'], "General")
+    current_date = "2026-06-01"
     return f"""You are a data quality agent for Sigma DataTech, a fintech platform.
+Today's date is: {current_date}
 
 Evaluate this transaction and return one of: PASS | QUARANTINE | FLAG
 
 Transaction:
   id:       {txn['id']}
   merchant: {txn['merchant']}
+  category: {category}
   amount:   {txn['amount']} {txn['currency']}
   date:     {txn['date']}
+  notes:    {txn['note']}
 
 Rules:
-  - QUARANTINE if: negative amount, unknown currency, future date, null id
-  - FLAG if: amount > 500000 INR with no business context
+  - QUARANTINE if: negative amount, unknown currency (valid currencies are: INR, USD, EUR, GBP), date is strictly after today's date ({current_date}), null id
+  - FLAG if: amount > 500000 INR with no business context (notes do not explain the transaction)
   - PASS if: all fields valid and amount is reasonable for the merchant type
 
 Respond with JSON only:
@@ -262,14 +238,14 @@ def evaluate_transaction(txn: dict) -> dict:
     prompt = build_prompt(txn)
 
     # Tag this trace so you can filter in Langfuse dashboard
-    langfuse_context.update_current_trace(
+    update_trace(
         name=f"quality-check-{txn['id']}",
+        tags=["day11", "quality-agent", f"run-{RUN_ID}"],
         metadata={
             "transaction_id": txn["id"],
             "merchant":       txn["merchant"],
             "amount":         txn["amount"],
             "expected":       txn["expected"],
-            "tags":           ["day11", "quality-agent", f"run-{RUN_ID}"],
         },
     )
 
@@ -298,9 +274,9 @@ def evaluate_transaction(txn: dict) -> dict:
     correct  = decision == txn["expected"]
 
     # Log the observation — this is what you see in Langfuse
-    langfuse_context.update_current_observation(
-        input=prompt,
-        output=text,
+    update_observation(
+        input_text=prompt,
+        output_text=text,
         usage={
             "input":  usage.get("inputTokens", 0),
             "output": usage.get("outputTokens", 0),
@@ -316,12 +292,17 @@ def evaluate_transaction(txn: dict) -> dict:
 
     # Score the trace — 1.0 = correct, 0.0 = wrong decision
     # This is what a production eval pipeline does automatically
-    lf.score(
-        trace_id=langfuse_context.get_current_trace_id(),
-        name="decision-correct",
-        value=1.0 if correct else 0.0,
-        comment=f"Expected {txn['expected']}, got {decision}. {result.get('reason','')}",
-    )
+    trace_id = get_current_trace_id()
+    if trace_id:
+        try:
+            lf.score(
+                trace_id=trace_id,
+                name="decision-correct",
+                value=1.0 if correct else 0.0,
+                comment=f"Expected {txn['expected']}, got {decision}. {result.get('reason','')}",
+            )
+        except Exception as e:
+            print(f"\n  [WARN] Langfuse score skipped: {e}")
 
     return {
         "id":        txn["id"],

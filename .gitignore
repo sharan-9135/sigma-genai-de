@@ -29,7 +29,6 @@ desktop.ini
 *.duckdb.wal
 
 # Large generated files
-*.pptx
 *.xlsx
 *.docx
 ~$*
@@ -44,5 +43,11 @@ desktop.ini
 *.log
 node_modules/
 
+# Local OpenMetadata sandbox volume
+day9/labs/openmetadata_sandbox/docker-volume/
+
+# Local agent memory / runtime artifacts
+day10/lab/agent_memory.db
+
 .vercel
-.env*
+
